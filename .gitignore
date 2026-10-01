@@ -1,3 +1,18 @@
-node_modules/
-dist/
+# JavaScript
+frontend/node_modules/
+frontend/dist/
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.venv/
+backend/*.db
+
+# Environment and editor state
 .env
+.env.*
+!.env.example
+.vscode/
+.idea/

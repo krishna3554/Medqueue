@@ -1,0 +1,39 @@
+# STATUS: DRAFT — pending clinical review. Do not use outside a prototype.
+version: 0.1
+rules:
+  - id: RF01
+    name: Chest symptoms with low oxygen
+    all:
+      - symptom_any: [chest_pain, chest_tightness]
+      - vital: {spo2: {lt: 92}}
+  - id: RF02
+    name: Chest pain with breathlessness
+    all:
+      - symptom_any: [chest_pain, chest_tightness]
+      - symptom_any: [breathlessness]
+  - id: RF03
+    name: Severe hypoxia
+    all:
+      - vital: {spo2: {lt: 90}}
+  - id: RF04
+    name: Extreme blood pressure
+    any:
+      - vital: {sbp: {gte: 200}}
+      - vital: {sbp: {lt: 80}}
+  - id: RF05
+    name: Altered consciousness
+    all:
+      - symptom_any: [confusion, unresponsive, seizure]
+  - id: RF06
+    name: Stroke signs
+    all:
+      - symptom_any: [facial_droop, slurred_speech, one_sided_weakness]
+  - id: RF07
+    name: Severe bleeding
+    all:
+      - symptom_any: [heavy_bleeding]
+  - id: RF08
+    name: High fever at age extremes
+    all:
+      - vital: {temp_c: {gte: 39.0}}
+      - age: {or: [{lt: 2}, {gte: 75}]}

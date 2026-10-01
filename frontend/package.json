@@ -1,0 +1,24 @@
+{
+  "name": "medqueueai",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 0.0.0.0",
+    "build": "vite build",
+    "preview": "vite --host 0.0.0.0",
+    "lint": "eslint src",
+    "format": "prettier --check ."
+  },
+  "dependencies": {
+    "@vitejs/plugin-react": "6.1.1",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "vite": "8.3.1"
+  },
+  "devDependencies": {
+    "eslint": "9.39.1",
+    "eslint-plugin-react-hooks": "7.0.1",
+    "prettier": "3.8.2"
+  }
+}
