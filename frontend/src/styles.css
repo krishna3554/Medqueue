@@ -68,6 +68,18 @@ body {
   font-family: Manrope, Arial, sans-serif;
   font-size: 14px;
 }
+.empty-state { padding: 28px; color: var(--muted); text-align: center; }
+.intake-form form { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; padding: 24px; }
+.intake-form label, .intake-form fieldset { display: grid; gap: 7px; color: var(--muted); font-weight: 700; }
+.intake-form input, .intake-form textarea, .intake-form select, .modal select { width: 100%; padding: 10px; border: 1px solid var(--line); border-radius: 7px; background: white; font: inherit; color: var(--ink); }
+.intake-form textarea { min-height: 76px; resize: vertical; }
+.intake-form .wide { grid-column: 1 / -1; }
+.intake-form fieldset { grid-template-columns: repeat(auto-fit, minmax(145px, 1fr)); border: 0; padding: 0; }
+.intake-form legend { grid-column: 1 / -1; color: var(--ink); }
+.intake-form .check { display: flex; align-items: center; gap: 7px; text-transform: capitalize; font-weight: 500; }
+.intake-form .check input { width: auto; }
+.vital-input input { margin-top: 2px; }
+.form-error { grid-column: 1 / -1; color: #b53232; margin: 0; }
 .app-shell {
   min-height: 100vh;
   display: grid;

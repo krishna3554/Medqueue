@@ -11,6 +11,7 @@ from typing import Annotated, Any, Literal
 
 import jwt
 from fastapi import Depends, FastAPI, HTTPException, status
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from pydantic import BaseModel, Field
 from sqlalchemy import select
@@ -23,6 +24,13 @@ from app.triage.rules import load_rules
 from app.triage.stub import stub_triage
 
 app = FastAPI(title="MedQueueAI API", version="0.2.0")
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=os.getenv("MEDQUEUE_CORS_ORIGINS", "http://localhost:5173").split(","),
+    allow_credentials=True,
+    allow_methods=["GET", "POST", "PATCH"],
+    allow_headers=["Authorization", "Content-Type"],
+)
 security = HTTPBearer()
 JWT_SECRET = os.getenv("MEDQUEUE_JWT_SECRET", "development-secret-change-me")
 ALGORITHM = "HS256"
@@ -50,6 +58,10 @@ class VisitCreate(BaseModel):
 
 class VitalsCreate(BaseModel):
     values: dict[str, float] = Field(min_length=1)
+
+
+class SymptomsCreate(BaseModel):
+    symptoms: list[str] = Field(default_factory=list)
 
 
 class OverrideCreate(BaseModel):
@@ -221,6 +233,26 @@ def record_vitals(
     session.flush()
     triage_visit(session, visit, patient)
     audit(session, visit.id, user["username"], "vitals_recorded", {"values": payload.values})
+    session.commit()
+    return visit_payload(session, visit, patient, datetime.now(UTC))
+
+
+@app.post("/visits/{visit_id}/symptoms")
+def record_symptoms(
+    visit_id: int,
+    payload: SymptomsCreate,
+    session: Annotated[Session, Depends(get_session)],
+    user: Annotated[dict[str, str], Depends(require_clinician)],
+) -> dict[str, Any]:
+    """Replace the confirmed canonical symptom list and re-run rules-first triage."""
+    visit = session.get(Visit, visit_id)
+    if not visit:
+        raise HTTPException(status_code=404, detail="Visit not found")
+    patient = session.get(Patient, visit.patient_id)
+    assert patient is not None
+    visit.symptoms = sorted({item.strip().lower() for item in payload.symptoms if item.strip()})
+    triage_visit(session, visit, patient)
+    audit(session, visit.id, user["username"], "symptoms_recorded", {"symptoms": visit.symptoms})
     session.commit()
     return visit_payload(session, visit, patient, datetime.now(UTC))
 
