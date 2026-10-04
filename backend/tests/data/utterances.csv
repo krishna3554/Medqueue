@@ -1,0 +1,121 @@
+utterance,expected_canonical,language
+I have fever for three days,fever,en
+mujhe bukhar hai teen din se,fever,hi
+मुझे बुखार है,fever,hi
+ताप आला आहे,fever,mr
+khansi ho rahi hai,cough,hi
+I have dry cough,cough,en
+मला खोकला आहे,cough,mr
+sardi jukam hai naak beh rahi hai,cold;runny_nose,hi
+sir mein dard hai,headache,hi
+I have severe headache,headache,en
+डोकेदुखी आहे,headache,mr
+seene mein dard hai,chest_pain,hi
+chest pain and breathlessness,chest_pain;breathlessness,en
+saans phool rahi hai,breathlessness,hi
+shortness of breath when walking,breathlessness,en
+pet mein dard hai,abdominal_pain,hi
+I have stomach pain,abdominal_pain,en
+पोटात दुखणे आहे,abdominal_pain,mr
+chakkar aa rahe hain,dizziness,hi
+I feel dizzy,dizziness,en
+ulti ho rahi hai,vomiting,hi
+I vomited twice today,vomiting,en
+dast lag gaye hain,diarrhoea,hi
+loose motions for two days,diarrhoea,en
+kabz hai,constipation,hi
+jee michal raha hai,nausea,hi
+I feel nauseous,nausea,en
+gala kharab hai,sore_throat,hi
+sore throat and cough,sore_throat;cough,en
+naak band hai,blocked_nose,hi
+blocked nose,blocked_nose,en
+chheenk aa rahi hai,sneezing,hi
+badan dard hai,body_ache,hi
+body ache all over,body_ache,en
+ghutne mein dard hai,joint_pain,hi
+kamar mein dard hai,back_pain,hi
+lower back pain,back_pain,en
+kandhe mein dard hai,shoulder_pain,hi
+pair mein dard hai,leg_pain,hi
+acidity ho rahi hai,acidity,en
+seene mein jalan hai,chest_burning,hi
+bhookh nahi lag rahi,loss_of_appetite,hi
+no appetite for three days,loss_of_appetite,en
+bahut thakaan hai,fatigue,hi
+I feel very tired,fatigue,en
+kamzori lag rahi hai,weakness,hi
+neend nahi aa rahi,sleep_problem,hi
+cannot sleep at night,sleep_problem,en
+ghabrahat ho rahi hai,anxiety;palpitations,hi
+dil zor se dhadak raha hai,palpitations,hi
+palpitations at night,palpitations,en
+bp high hai,high_bp,hi
+sugar badh gaya hai,diabetes_sugar,hi
+dame ki takleef hai,asthma,hi
+wheezing sound while breathing,wheezing,en
+naak se khoon aa raha,nosebleed,hi
+bahut khoon beh raha hai,heavy_bleeding,hi
+heavy bleeding from cut,heavy_bleeding,en
+peshaab mein jalan hai,painful_urination,hi
+burning during urination,painful_urination,en
+baar baar peshaab aata,frequent_urination,hi
+pairon mein soojan hai,swelling_feet,hi
+swollen feet in evening,swelling_feet,en
+shareer par daane hain,rash,hi
+skin rash with itching,rash;itching,en
+khujli ho rahi hai,itching,hi
+baal jhad rahe hain,hair_fall,hi
+munh mein chhaala hai,mouth_ulcer,hi
+daant mein dard hai,toothache,hi
+toothache since two days,toothache,en
+kaan mein dard hai,ear_pain,hi
+ear pain and discharge,ear_pain;ear_discharge,en
+aankh mein dard hai,eye_pain,hi
+eye redness,eye_redness,en
+aankh laal ho gayi,eye_redness,hi
+dhundla dikh raha hai,blurred_vision,hi
+confusion ho raha hai,confusion,en
+behosh ho gaya hai,unresponsive,hi
+patient is unresponsive,unresponsive,en
+daura pad gaya,seizure,hi
+chakkar kha kar gir gaya,fainting,hi
+chehra tedha lag raha,facial_droop,hi
+zubaan ladkhada rahi hai,slurred_speech,hi
+slurred speech,slurred_speech,en
+ek taraf kamzori hai,one_sided_weakness,hi
+haath sunn ho raha hai,numbness,hi
+numbness in fingers,numbness,en
+haath kaanp rahe hain,tremor,hi
+bolne mein dikkat hai,speech_difficulty,hi
+aawaaz baith gayi hai,hoarseness,hi
+hichki aa rahi hai,hiccups,hi
+bahut pyaas lag rahi,excess_thirst,hi
+raat mein paseena aata,night_sweats,hi
+thand lag rahi hai,chills;feeling_cold,hi
+chills and fever,chills;fever,en
+"no fever, only cough",cough,en
+"bukhar nahi hai, khansi hai",cough,hi
+no chest pain,,en
+seene mein dard nahi hai,,hi
+fever for 5 days,fever,en
+do din se khansi,cough,hi
+teen din se dast,diarrhoea,hi
+I have cough and cold,cough;cold,en
+bukhar aur khansi dono hain,fever;cough,hi
+tapa ani khokla aahe,fever;cough,mr
+potat dukhane aani ulti,abdominal_pain;vomiting,mr
+"dokya dukhatey, neend nahi",headache;sleep_problem,mr
+"saans phoolti, chest tight lag raha",breathlessness;chest_tightness,hi
+"mujhe diabetes hai, sugar high hai",diabetes_sugar,hi
+thyroid ki problem hai,thyroid,hi
+kutte ne kaata hai,dog_bite,hi
+dog bite on leg,dog_bite,en
+allergy ho gayi hai,allergy,hi
+khaane se allergy hai,food_allergy,hi
+khansi mein khoon aaya,cough_with_blood,hi
+coughing up blood,cough_with_blood,en
+raat mein saans phoolti,shortness_night,hi
+kharraate aate hain,snoring,hi
+bechaini ho rahi hai,restlessness,hi
+chidchid ho rahi hai,irritability,hi
