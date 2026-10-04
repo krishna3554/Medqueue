@@ -4,3 +4,57 @@ services:
       context: .
       dockerfile: backend/Dockerfile
     ports: ["8000:8000"]
+    environment:
+      MEDQUEUE_DATABASE_URL: ${MEDQUEUE_DATABASE_URL:-sqlite:///./medqueue.db}
+      MEDQUEUE_JWT_SECRET: ${MEDQUEUE_JWT_SECRET:-development-secret-change-me}
+      MEDQUEUE_CORS_ORIGINS: ${MEDQUEUE_CORS_ORIGINS:-http://localhost:5173}
+      MEDQUEUE_RULES_PATH: /docs/red_flag_rules.yaml
+      MEDQUEUE_MODEL_DIR: /ml/artifacts
+    volumes:
+      # Local synthetic model binaries (gitignored) are used when present;
+      # otherwise the API serves rules + stub ("AI unavailable").
+      - ./ml/artifacts:/ml/artifacts:ro
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8000/health')\""]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+      args:
+        VITE_API_URL: ${VITE_API_URL:-http://localhost:8000}
+    ports: ["5173:4173"]
+    depends_on:
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "node -e \"fetch('http://localhost:4173/').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))\""]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+  # Optional PostgreSQL. Start with:
+  #   docker compose --profile postgres up --build
+  # then set MEDQUEUE_DATABASE_URL=postgresql://medqueue:medqueue@db:5432/medqueue
+  db:
+    image: postgres:16-alpine
+    profiles: ["postgres"]
+    environment:
+      POSTGRES_USER: medqueue
+      POSTGRES_PASSWORD: medqueue
+      POSTGRES_DB: medqueue
+    ports: ["5432:5432"]
+    volumes: ["medqueue-pgdata:/var/lib/postgresql/data"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U medqueue -d medqueue"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  medqueue-pgdata:
