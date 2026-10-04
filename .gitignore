@@ -1,5 +1,6 @@
 # JavaScript
 frontend/node_modules/
+/node_modules/
 frontend/dist/
 
 # Python
@@ -8,6 +9,7 @@ __pycache__/
 .pytest_cache/
 .ruff_cache/
 .venv/
+backend/venv/
 backend/*.db
 
 # Environment and editor state
