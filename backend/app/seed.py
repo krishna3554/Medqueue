@@ -4,9 +4,11 @@ Run with: ``python -m app.seed`` from the backend directory.
 """
 
 from datetime import UTC, datetime, timedelta
+from pathlib import Path
 
+from app.auth import VALID_ROLES, hash_password
 from app.database import Base, SessionLocal, engine
-from app.models import AuditEvent, Patient, Visit, Vital
+from app.models import AuditEvent, Doctor, Patient, User, Visit, Vital
 from app.triage.rules import load_rules
 from app.triage.stub import stub_triage
 
@@ -62,10 +64,65 @@ DEMO_PATIENTS = [
 ]
 
 
+DEV_USERS = [
+    {"username": "registration", "role": "registration"},
+    {"username": "nurse", "role": "triage_nurse"},
+    {"username": "clinician", "role": "clinician"},
+    {"username": "admin", "role": "admin"},
+]
+DEV_PASSWORD = "medqueue-demo"
+
+DEMO_DOCTORS = [
+    {"name": "Dr. A. General", "department": "General", "status": "available",
+     "avg_consult_min": 10.0},
+    {"name": "Dr. B. Medicine", "department": "Medicine", "status": "available",
+     "avg_consult_min": 12.0},
+]
+
+
+def rules_path() -> Path:
+    import os
+
+    return Path(os.getenv("MEDQUEUE_RULES_PATH", Path(__file__).parents[2] / "docs"
+               / "red_flag_rules.yaml"))
+
+
+def seed_users() -> int:
+    """Create one clearly synthetic dev user per role; never overwrite passwords."""
+    Base.metadata.create_all(engine)
+    created = 0
+    with SessionLocal.begin() as session:
+        for item in DEV_USERS:
+            assert item["role"] in VALID_ROLES
+            if session.query(User).filter_by(username=item["username"]).first():
+                continue
+            session.add(
+                User(
+                    username=item["username"],
+                    password_hash=hash_password(DEV_PASSWORD),
+                    role=item["role"],
+                )
+            )
+            created += 1
+    return created
+
+
+def seed_doctors() -> int:
+    Base.metadata.create_all(engine)
+    created = 0
+    with SessionLocal.begin() as session:
+        for item in DEMO_DOCTORS:
+            if session.query(Doctor).filter_by(name=item["name"]).first():
+                continue
+            session.add(Doctor(**item))
+            created += 1
+    return created
+
+
 def seed_demo_data() -> int:
     """Insert demo rows once; leave all existing records untouched."""
     Base.metadata.create_all(engine)
-    rules = load_rules(engine.url.database and "../docs/red_flag_rules.yaml")
+    rules = load_rules(rules_path())
     created = 0
     with SessionLocal.begin() as session:
         for item in DEMO_PATIENTS:
@@ -103,4 +160,8 @@ def seed_demo_data() -> int:
 
 
 if __name__ == "__main__":
-    print(f"Created {seed_demo_data()} synthetic demo patient record(s).")
+    users = seed_users()
+    doctors = seed_doctors()
+    demos = seed_demo_data()
+    print(f"Created {users} dev user(s), {doctors} doctor(s), "
+          f"{demos} synthetic demo patient record(s).")

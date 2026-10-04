@@ -6,6 +6,7 @@ It is decision support only and must not be used for clinical diagnosis.
 
 import os
 from contextlib import asynccontextmanager
+from dataclasses import dataclass
 from datetime import UTC, date, datetime, timedelta
 from pathlib import Path
 from typing import Annotated, Any, Literal
@@ -19,9 +20,11 @@ from pydantic import BaseModel, Field
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from app.auth import verify_password
 from app.database import Base, engine, get_session
-from app.models import AuditEvent, Patient, Visit, Vital
+from app.models import AuditEvent, Doctor, Patient, User, Visit, Vital
 from app.queue.priority import priority
+from app.queue.wait import RollingMean, estimate_wait_min
 from app.triage.rules import load_rules
 from app.triage.stub import stub_triage
 
@@ -48,6 +51,7 @@ RULES_PATH = Path(
 )
 RULES = load_rules(RULES_PATH)
 KOLKATA = ZoneInfo("Asia/Kolkata")
+DEPT_DEFAULT_MIN = 10.0
 
 
 class LoginRequest(BaseModel):
@@ -64,6 +68,7 @@ class VisitCreate(BaseModel):
     patient_id: int
     complaint: str = Field(min_length=1, max_length=2_000)
     symptoms: list[str] = Field(default_factory=list)
+    doctor_id: int | None = None
 
 
 class VitalsCreate(BaseModel):
@@ -83,6 +88,19 @@ class StatusChange(BaseModel):
     status: Literal["waiting", "in_review", "completed"]
 
 
+class DoctorStatusChange(BaseModel):
+    status: Literal["available", "break", "off"]
+
+
+class DoctorAssign(BaseModel):
+    doctor_id: int | None
+
+
+@dataclass
+class AheadEntry:
+    doctor_id: str | None
+
+
 def current_user(
     credentials: Annotated[HTTPAuthorizationCredentials, Depends(security)],
 ) -> dict[str, str]:
@@ -97,6 +115,12 @@ def current_user(
 def require_clinician(user: Annotated[dict[str, str], Depends(current_user)]) -> dict[str, str]:
     if user["role"] not in {"triage_nurse", "clinician", "admin"}:
         raise HTTPException(status_code=403, detail="Clinical role required")
+    return user
+
+
+def require_admin(user: Annotated[dict[str, str], Depends(current_user)]) -> dict[str, str]:
+    if user["role"] != "admin":
+        raise HTTPException(status_code=403, detail="Admin role required")
     return user
 
 
@@ -131,14 +155,63 @@ def audit(
     session.add(AuditEvent(visit_id=visit_id, actor=actor, action=action, detail=detail))
 
 
+def effective_level(visit: Visit) -> int:
+    """Override replaces the base triage level; red-flag and aging still apply.
+
+    The returned level feeds priority() together with the stored red_flag and
+    registered_at, so waiting-time aging and the red-flag boost are unchanged
+    by an override. The automated level is preserved for audit.
+    """
+    return visit.override_level if visit.override_level is not None else visit.triage_level
+
+
+def ensure_utc(value: datetime) -> datetime:
+    if value.tzinfo is None:
+        return value.replace(tzinfo=UTC)
+    return value
+
+
+def consultation_estimates(session: Session) -> tuple[dict[str | None, float], float, int]:
+    """Per-doctor consult means from recent durations with department fallback.
+
+    Uses RollingMean (min 3 samples per doctor) fed from stored consultation
+    start/end times; falls back to each doctor's avg_consult_min and then to
+    the department mean. Returns (avg_map, dept_default, available_count).
+    """
+    doctors = session.scalars(select(Doctor)).all()
+    if not doctors:
+        return {}, DEPT_DEFAULT_MIN, 0
+    available = [item for item in doctors if item.status == "available"] or list(doctors)
+    dept_default = sum(item.avg_consult_min for item in available) / len(available)
+    rolling = RollingMean()
+    recent = session.scalars(
+        select(Visit)
+        .where(Visit.consult_started_at.is_not(None), Visit.consult_ended_at.is_not(None))
+        .order_by(Visit.consult_ended_at.desc())
+        .limit(200)
+    ).all()
+    for item in recent:
+        if item.doctor_id is None:
+            continue
+        minutes = (
+            ensure_utc(item.consult_ended_at) - ensure_utc(item.consult_started_at)
+        ).total_seconds() / 60
+        if 0 <= minutes <= 240:
+            rolling.add(str(item.doctor_id), minutes)
+    avg_map: dict[str | None, float] = {
+        str(item.id): rolling.for_doctor(str(item.id), item.avg_consult_min)
+        for item in doctors
+    }
+    count = sum(1 for item in doctors if item.status == "available")
+    return avg_map, dept_default, count
+
+
 def visit_payload(
-    session: Session, visit: Visit, patient: Patient, now: datetime
+    session: Session, visit: Visit, patient: Patient, now: datetime,
+    est_wait_min: float | None = None,
 ) -> dict[str, Any]:
-    registered_at = visit.registered_at
-    if registered_at.tzinfo is None:
-        # SQLite does not preserve timezone information for DateTime columns.
-        registered_at = registered_at.replace(tzinfo=UTC)
-    effective_level = visit.override_level or visit.triage_level
+    registered_at = ensure_utc(visit.registered_at)
+    level = effective_level(visit)
     return {
         "id": visit.id,
         "patient": {"id": patient.id, "name": patient.name, "date_of_birth": patient.date_of_birth},
@@ -146,8 +219,11 @@ def visit_payload(
         "symptoms": visit.symptoms,
         "registered_at": registered_at,
         "status": visit.status,
+        "doctor_id": visit.doctor_id,
+        "consult_started_at": visit.consult_started_at,
+        "consult_ended_at": visit.consult_ended_at,
         "triage": {
-            "level": effective_level,
+            "level": level,
             "automated_level": visit.triage_level,
             "red_flag": visit.red_flag,
             "factors": visit.factors,
@@ -155,7 +231,8 @@ def visit_payload(
             "overridden": visit.override_level is not None,
         },
         "latest_vitals": latest_vitals(session, visit.id),
-        "priority_score": round(priority(effective_level, registered_at, now, visit.red_flag), 3),
+        "priority_score": round(priority(level, registered_at, now, visit.red_flag), 3),
+        "est_wait_min": est_wait_min,
     }
 
 
@@ -165,27 +242,35 @@ def health() -> dict[str, str]:
 
 
 @app.post("/auth/login")
-def login(payload: LoginRequest) -> dict[str, str]:
-    # Prototype-only account. A production deployment must use an identity provider.
-    if (payload.username, payload.password) != ("triage", "medqueue-demo"):
+def login(
+    payload: LoginRequest, session: Annotated[Session, Depends(get_session)]
+) -> dict[str, str]:
+    """Authenticate a seeded dev user; production must use an identity provider."""
+    user = session.scalars(select(User).where(User.username == payload.username)).first()
+    if user is None or not verify_password(payload.password, user.password_hash):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")
     token = jwt.encode(
         {
-            "sub": payload.username,
-            "role": "triage_nurse",
+            "sub": user.username,
+            "role": user.role,
             "exp": datetime.now(UTC) + timedelta(hours=8),
         },
         JWT_SECRET,
         algorithm=ALGORITHM,
     )
-    return {"access_token": token, "token_type": "bearer"}
+    return {
+        "access_token": token,
+        "token_type": "bearer",
+        "username": user.username,
+        "role": user.role,
+    }
 
 
 @app.post("/patients", status_code=status.HTTP_201_CREATED)
 def create_patient(
     payload: PatientCreate,
     session: Annotated[Session, Depends(get_session)],
-    _: Annotated[dict[str, str], Depends(require_clinician)],
+    _: Annotated[dict[str, str], Depends(current_user)],
 ) -> dict[str, object]:
     patient = Patient(
         name=payload.name,
@@ -200,13 +285,18 @@ def create_patient(
 def create_visit(
     payload: VisitCreate,
     session: Annotated[Session, Depends(get_session)],
-    user: Annotated[dict[str, str], Depends(require_clinician)],
+    user: Annotated[dict[str, str], Depends(current_user)],
 ) -> dict[str, Any]:
     patient = session.get(Patient, payload.patient_id)
     if not patient:
         raise HTTPException(status_code=404, detail="Patient not found")
+    if payload.doctor_id is not None and not session.get(Doctor, payload.doctor_id):
+        raise HTTPException(status_code=404, detail="Doctor not found")
     visit = Visit(
-        patient_id=patient.id, complaint=payload.complaint, symptoms=sorted(set(payload.symptoms))
+        patient_id=patient.id,
+        complaint=payload.complaint,
+        symptoms=sorted(set(payload.symptoms)),
+        doctor_id=payload.doctor_id,
     )
     session.add(visit)
     session.flush()
@@ -227,7 +317,7 @@ def record_vitals(
     visit_id: int,
     payload: VitalsCreate,
     session: Annotated[Session, Depends(get_session)],
-    user: Annotated[dict[str, str], Depends(require_clinician)],
+    user: Annotated[dict[str, str], Depends(current_user)],
 ) -> dict[str, Any]:
     visit = session.get(Visit, visit_id)
     if not visit:
@@ -247,7 +337,7 @@ def record_symptoms(
     visit_id: int,
     payload: SymptomsCreate,
     session: Annotated[Session, Depends(get_session)],
-    user: Annotated[dict[str, str], Depends(require_clinician)],
+    user: Annotated[dict[str, str], Depends(current_user)],
 ) -> dict[str, Any]:
     """Replace the confirmed canonical symptom list and re-run rules-first triage."""
     visit = session.get(Visit, visit_id)
@@ -271,10 +361,29 @@ def queue(
     rows = session.execute(
         select(Visit, Patient).join(Patient).where(Visit.status == "waiting")
     ).all()
-    return sorted(
+    ranked = sorted(
         (visit_payload(session, visit, patient, now) for visit, patient in rows),
         key=lambda item: (-item["priority_score"], item["registered_at"]),
     )
+    avg_map, dept_default, available_count = consultation_estimates(session)
+    divisor = available_count or 1
+    for index, item in enumerate(ranked):
+        doctor_key = str(item["doctor_id"]) if item["doctor_id"] is not None else None
+        if doctor_key is not None:
+            ahead = [
+                AheadEntry(str(other["doctor_id"]))
+                for other in ranked[:index]
+                if other["doctor_id"] == item["doctor_id"]
+            ]
+            item["est_wait_min"] = estimate_wait_min(ahead, avg_map, dept_default)
+        else:
+            ahead = [
+                AheadEntry(str(other["doctor_id"]) if other["doctor_id"] is not None else None)
+                for other in ranked[:index]
+            ]
+            total = estimate_wait_min(ahead, avg_map, dept_default)
+            item["est_wait_min"] = round(total / divisor, 1)
+    return ranked
 
 
 @app.post("/visits/{visit_id}/override")
@@ -315,17 +424,85 @@ def update_status(
     visit = session.get(Visit, visit_id)
     if not visit:
         raise HTTPException(status_code=404, detail="Visit not found")
+    now = datetime.now(UTC)
     visit.status = payload.status
+    if payload.status == "in_review" and visit.consult_started_at is None:
+        visit.consult_started_at = now
+    if payload.status == "completed":
+        if visit.consult_started_at is None:
+            visit.consult_started_at = now
+        visit.consult_ended_at = now
     audit(session, visit.id, user["username"], "status_changed", {"status": payload.status})
     session.commit()
     return {"id": str(visit.id), "status": visit.status}
+
+
+@app.patch("/visits/{visit_id}/doctor")
+def assign_doctor(
+    visit_id: int,
+    payload: DoctorAssign,
+    session: Annotated[Session, Depends(get_session)],
+    user: Annotated[dict[str, str], Depends(require_clinician)],
+) -> dict[str, Any]:
+    visit = session.get(Visit, visit_id)
+    if not visit:
+        raise HTTPException(status_code=404, detail="Visit not found")
+    if payload.doctor_id is not None and not session.get(Doctor, payload.doctor_id):
+        raise HTTPException(status_code=404, detail="Doctor not found")
+    patient = session.get(Patient, visit.patient_id)
+    assert patient is not None
+    visit.doctor_id = payload.doctor_id
+    audit(
+        session, visit.id, user["username"], "doctor_assigned", {"doctor_id": payload.doctor_id}
+    )
+    session.commit()
+    return visit_payload(session, visit, patient, datetime.now(UTC))
+
+
+@app.get("/doctors")
+def list_doctors(
+    session: Annotated[Session, Depends(get_session)],
+    _: Annotated[dict[str, str], Depends(current_user)],
+) -> list[dict[str, Any]]:
+    doctors = session.scalars(select(Doctor).order_by(Doctor.id)).all()
+    return [
+        {
+            "id": item.id,
+            "name": item.name,
+            "department": item.department,
+            "status": item.status,
+            "avg_consult_min": item.avg_consult_min,
+        }
+        for item in doctors
+    ]
+
+
+@app.patch("/doctors/{doctor_id}/status")
+def update_doctor_status(
+    doctor_id: int,
+    payload: DoctorStatusChange,
+    session: Annotated[Session, Depends(get_session)],
+    _: Annotated[dict[str, str], Depends(require_clinician)],
+) -> dict[str, Any]:
+    doctor = session.get(Doctor, doctor_id)
+    if not doctor:
+        raise HTTPException(status_code=404, detail="Doctor not found")
+    doctor.status = payload.status
+    session.commit()
+    return {
+        "id": doctor.id,
+        "name": doctor.name,
+        "department": doctor.department,
+        "status": doctor.status,
+        "avg_consult_min": doctor.avg_consult_min,
+    }
 
 
 @app.get("/visits/{visit_id}/audit")
 def visit_audit(
     visit_id: int,
     session: Annotated[Session, Depends(get_session)],
-    _: Annotated[dict[str, str], Depends(current_user)],
+    _: Annotated[dict[str, str], Depends(require_admin)],
 ) -> list[dict[str, Any]]:
     if not session.get(Visit, visit_id):
         raise HTTPException(status_code=404, detail="Visit not found")

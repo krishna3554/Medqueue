@@ -4,15 +4,25 @@ from fastapi.testclient import TestClient
 from sqlalchemy import create_engine, select
 from sqlalchemy.orm import Session, sessionmaker
 
+from app.auth import hash_password
 from app.database import Base, get_session
 from app.main import app
-from app.models import AuditEvent
+from app.models import AuditEvent, User
 
 
 def test_triage_workflow_is_ranked_and_audited(tmp_path) -> None:
     test_engine = create_engine(f"sqlite:///{tmp_path / 'test.db'}")
     testing_session = sessionmaker(bind=test_engine, expire_on_commit=False)
     Base.metadata.create_all(test_engine)
+    with testing_session() as session:
+        session.add(
+            User(
+                username="nurse",
+                password_hash=hash_password("medqueue-demo"),
+                role="triage_nurse",
+            )
+        )
+        session.commit()
 
     def test_session() -> Generator[Session, None, None]:
         session = testing_session()
@@ -25,7 +35,7 @@ def test_triage_workflow_is_ranked_and_audited(tmp_path) -> None:
     try:
         with TestClient(app) as client:
             login = client.post(
-                "/auth/login", json={"username": "triage", "password": "medqueue-demo"}
+                "/auth/login", json={"username": "nurse", "password": "medqueue-demo"}
             )
             assert login.status_code == 200
             headers = {"Authorization": f"Bearer {login.json()['access_token']}"}

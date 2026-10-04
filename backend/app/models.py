@@ -2,7 +2,7 @@
 
 from datetime import UTC, datetime
 
-from sqlalchemy import JSON, Boolean, DateTime, ForeignKey, Integer, String, Text
+from sqlalchemy import JSON, Boolean, DateTime, Float, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.database import Base
@@ -39,6 +39,15 @@ class Visit(Base):
     override_level: Mapped[int | None] = mapped_column(Integer, nullable=True)
     override_reason: Mapped[str | None] = mapped_column(Text, nullable=True)
     override_by: Mapped[str | None] = mapped_column(String(80), nullable=True)
+    doctor_id: Mapped[int | None] = mapped_column(
+        ForeignKey("doctors.id"), nullable=True, index=True
+    )
+    consult_started_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+    consult_ended_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
 
 
 class Vital(Base):
@@ -48,6 +57,29 @@ class Vital(Base):
     visit_id: Mapped[int] = mapped_column(ForeignKey("visits.id"), index=True)
     values: Mapped[dict[str, float]] = mapped_column(JSON)
     recorded_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+
+
+class User(Base):
+    """Login account. Dev-seeded only; production must use an identity provider."""
+
+    __tablename__ = "users"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    username: Mapped[str] = mapped_column(String(80), unique=True, index=True)
+    password_hash: Mapped[str] = mapped_column(String(255))
+    role: Mapped[str] = mapped_column(String(20), index=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+
+
+class Doctor(Base):
+    __tablename__ = "doctors"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    name: Mapped[str] = mapped_column(String(160))
+    department: Mapped[str] = mapped_column(String(80), default="General")
+    status: Mapped[str] = mapped_column(String(20), default="available", index=True)
+    avg_consult_min: Mapped[float] = mapped_column(Float, default=10.0)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
 
 
 class AuditEvent(Base):
