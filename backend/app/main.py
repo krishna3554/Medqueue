@@ -22,10 +22,12 @@ from sqlalchemy.orm import Session
 
 from app.auth import verify_password
 from app.database import Base, engine, get_session
+from app.explain.shap_service import explain
 from app.models import AuditEvent, Doctor, Patient, User, Visit, Vital
 from app.queue.priority import priority
 from app.queue.wait import RollingMean, estimate_wait_min
-from app.triage.rules import load_rules
+from app.triage import model as triage_model
+from app.triage.rules import evaluate_rules, load_rules
 from app.triage.stub import stub_triage
 
 
@@ -140,13 +142,41 @@ def latest_vitals(session: Session, visit_id: int) -> dict[str, float]:
 
 
 def triage_visit(session: Session, visit: Visit, patient: Patient) -> None:
-    result = stub_triage(
-        set(visit.symptoms), latest_vitals(session, visit.id), age_on(patient.date_of_birth), RULES
-    )
+    """Rules-first triage: red-flag rules override any model output.
+
+    Falls back to rules + stub with an "AI unavailable" state when the model
+    is missing or fails. Never raises because of the model.
+    """
+    symptoms = set(visit.symptoms)
+    vitals = latest_vitals(session, visit.id)
+    years = age_on(patient.date_of_birth)
+    if evaluate_rules(symptoms, vitals, years, RULES):
+        result = stub_triage(symptoms, vitals, years, RULES)
+        visit.triage_level = result["level"]
+        visit.red_flag = result["red_flag"]
+        visit.factors = result["factors"]
+        visit.triage_source = result["source"]
+        visit.top_factors = None
+        visit.model_version = None
+        return
+    predicted = triage_model.predict(symptoms, vitals, years)
+    if predicted is not None:
+        level = int(predicted["level"])
+        details = explain(symptoms, vitals, years, level)
+        visit.triage_level = level
+        visit.red_flag = False
+        visit.factors = [details["rationale"]]
+        visit.triage_source = "model"
+        visit.top_factors = details["top_factors"]
+        visit.model_version = str(predicted["model_version"])
+        return
+    result = stub_triage(symptoms, vitals, years, RULES)
     visit.triage_level = result["level"]
     visit.red_flag = result["red_flag"]
     visit.factors = result["factors"]
     visit.triage_source = result["source"]
+    visit.top_factors = None
+    visit.model_version = None
 
 
 def audit(
@@ -229,6 +259,9 @@ def visit_payload(
             "factors": visit.factors,
             "source": visit.triage_source,
             "overridden": visit.override_level is not None,
+            "top_factors": visit.top_factors,
+            "model_version": visit.model_version,
+            "ai_available": visit.triage_source == "model" or visit.model_version is not None,
         },
         "latest_vitals": latest_vitals(session, visit.id),
         "priority_score": round(priority(level, registered_at, now, visit.red_flag), 3),

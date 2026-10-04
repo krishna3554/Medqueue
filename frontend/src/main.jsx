@@ -304,6 +304,11 @@ export function App() {
             <section className="detail-section">
               <h3>Reason for position</h3>
               <p className="explain">{selected.triage.factors.join('. ') || 'Priority uses triage level and time already waiting.'}</p>
+              {selected.triage.source === 'model' && selected.triage.top_factors && (
+                <p className="explain">Model {selected.triage.model_version}: {selected.triage.top_factors.map((f) => `${f.name.replaceAll('_', ' ')} ${f.value}`).join(', ')}.</p>
+              )}
+              {selected.triage.source === 'stub' && <p className="explain">AI unavailable — using rules and stub triage (pending clinical review).</p>}
+              {selected.triage.source === 'rules' && <p className="explain">Red-flag rule applied (rules-first, pending clinical review).</p>}
               <p className="explain">Expected review: {expectedReview(selected)} ({expectedSub(selected)}).</p>
             </section>
             <section className="detail-section vitals">
