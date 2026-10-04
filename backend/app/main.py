@@ -5,9 +5,11 @@ It is decision support only and must not be used for clinical diagnosis.
 """
 
 import os
+from contextlib import asynccontextmanager
 from datetime import UTC, date, datetime, timedelta
 from pathlib import Path
 from typing import Annotated, Any, Literal
+from zoneinfo import ZoneInfo
 
 import jwt
 from fastapi import Depends, FastAPI, HTTPException, status
@@ -23,7 +25,14 @@ from app.queue.priority import priority
 from app.triage.rules import load_rules
 from app.triage.stub import stub_triage
 
-app = FastAPI(title="MedQueueAI API", version="0.2.0")
+
+@asynccontextmanager
+async def lifespan(_: FastAPI):
+    Base.metadata.create_all(engine)
+    yield
+
+
+app = FastAPI(title="MedQueueAI API", version="0.2.0", lifespan=lifespan)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=os.getenv("MEDQUEUE_CORS_ORIGINS", "http://localhost:5173").split(","),
@@ -38,6 +47,7 @@ RULES_PATH = Path(
     os.getenv("MEDQUEUE_RULES_PATH", Path(__file__).parents[2] / "docs" / "red_flag_rules.yaml")
 )
 RULES = load_rules(RULES_PATH)
+KOLKATA = ZoneInfo("Asia/Kolkata")
 
 
 class LoginRequest(BaseModel):
@@ -94,7 +104,7 @@ def age_on(dob: str | None) -> int | None:
     if not dob:
         return None
     born = date.fromisoformat(dob)
-    today = date.today()
+    today = datetime.now(KOLKATA).date()
     return today.year - born.year - ((today.month, today.day) < (born.month, born.day))
 
 
@@ -147,11 +157,6 @@ def visit_payload(
         "latest_vitals": latest_vitals(session, visit.id),
         "priority_score": round(priority(effective_level, registered_at, now, visit.red_flag), 3),
     }
-
-
-@app.on_event("startup")
-def create_tables() -> None:
-    Base.metadata.create_all(engine)
 
 
 @app.get("/health")
