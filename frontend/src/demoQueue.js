@@ -1,4 +1,7 @@
-// Clearly synthetic local data used only when the prototype API is unavailable.
+// SYNTHETIC DEMO DATA ONLY — mirrors backend/app/seed.py DEMO_PATIENTS.
+// Clearly synthetic, never real patient data. Used only when the API is
+// unavailable. Triage levels here are illustrative; live triage comes from
+// the rules-first backend (rules, then model, then stub).
 const minutesAgo = (minutes) => new Date(Date.now() - minutes * 60_000).toISOString();
 
 export const demoQueue = [
