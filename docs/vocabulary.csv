@@ -1,0 +1,152 @@
+"# DRAFT — needs native-speaker review. Decision support only, not diagnosis."
+canonical,english,hindi_devanagari,hindi_romanised,marathi_devanagari,marathi_romanised,code_switched_example
+fever,fever; high fever; temperature,बुखार; तेज बुखार,bukhar; tez bukhar; fever,ताप; अंग गरम,taap; bukhar; fever,mujhe bukhar hai
+cough,cough; dry cough; wet cough,खांसी; सूखी खांसी; बलगम वाली खांसी,khansi; sukhi khansi; cough,खोकला; कोरडा खोकला; कफ,khokla; khansi; cough,khansi ho rahi hai
+cold,cold; runny nose; blocked nose,जुकाम; सर्दी; नाक बहना,jukam; sardi; naak behna,सर्दी; नाक वाहणे,sardi; cold; naak vahane,sardi jukam hai
+headache,headache; head pain,सिरदर्द; सिर में दर्द,sirdard; sir dard; headache,डोकेदुखी; डोक्यात दुखणे,dokedukhi; dokyat dukhane,sir mein dard hai
+chest_pain,chest pain; chest ache,सीने में दर्द; छाती में दर्द,seene mein dard; chaati dard; chest pain,छातीत दुखणे; छातीत वेदना,chhatit dukhane; chest pain,seene mein dard hai
+chest_tightness,chest tightness; chest heaviness,सीने में जकड़न; छाती भारी,seene mein jakdan; chest tightness,छातीत घट्टपणा,chhatit ghattapana; chest tightness,chest tight lag raha
+breathlessness,breathlessness; shortness of breath; difficulty breathing,सांस फूलना; सांस लेने में तकलीफ,saans phoolna; saans lene mein takleef,धाप लागणे; श्वास घ्यायला त्रास,dhaap lagne; breathlessness,saans phool rahi hai
+abdominal_pain,stomach pain; abdominal pain; belly ache,पेट दर्द; पेट में दर्द,pet dard; pet mein dard,पोटदुखी; पोटात दुखणे,potdukhi; potat dukhane,pet mein dard hai
+dizziness,dizziness; lightheadedness; vertigo,चक्कर; चक्कर आना,chakkar; chakkar aana,चक्कर येणे; गरगरणे,chakkar yene; dizziness,chakkar aa rahe hain
+vomiting,vomiting; vomit; throwing up,उल्टी; कै,ulti; kai; vomiting,उलटी; ओकारी,ulti; okari; vomiting,ulti ho rahi hai
+diarrhoea,diarrhoea; loose motions; diarrhea,दस्त; पतले दस्त,dast; loose motions; diarrhoea,जुलाब; पातळ शौचास,julab; loose motions,dast lag gaye hain
+constipation,constipation; hard stools,कब्ज,kabz; constipation,बद्धकोष्ठता,baddhakoshthata; constipation,kabz hai
+nausea,nausea; feeling sick; uneasiness,मतली; जी मिचलाना,matli; jee michlana; nausea,मळमळ; उलटीसारखे वाटणे,malmal; nausea,jee michal raha hai
+sore_throat,sore throat; throat pain,गले में दर्द; गला खराब,gale mein dard; gala kharab,घशात दुखणे; घसा दुखणे,ghashat dukhane; sore throat,gala kharab hai
+runny_nose,runny nose; nasal discharge,नाक बहना,naak behna; runny nose,नाक वाहणे,naak vahane; runny nose,naak beh rahi hai
+blocked_nose,blocked nose; nasal congestion,नाक बंद,naak band; blocked nose,नाक बंद होणे,naak band; blocked nose,naak band hai
+sneezing,sneezing; sneezes,छींक,chheenk; sneezing,शिंका येणे,shinka; sneezing,chheenk aa rahi hai
+body_ache,body ache; body pain,बदन दर्द; शरीर में दर्द,badan dard; sharir dard,अंगदुखी,angdukhi; body ache,badan dard hai
+joint_pain,joint pain; knee pain; arthritis pain,जोड़ों का दर्द; घुटने में दर्द,jodon ka dard; ghutne dard,सांधेदुखी; गुडघेदुखी,sandhedukhi; joint pain,ghutne mein dard hai
+back_pain,back pain; lower back ache,कमर दर्द; पीठ दर्द,kamar dard; peeth dard,कंबरदुखी; पाठदुखी,kambardukhi; back pain,kamar mein dard hai
+neck_pain,neck pain; stiff neck,गर्दन दर्द,gardan dard; neck pain,मानदुखी,maandukhi; neck pain,gardan mein dard hai
+shoulder_pain,shoulder pain,कंधे में दर्द,kandhe mein dard,खांदेदुखी,khandedukhi; shoulder pain,kandhe mein dard hai
+leg_pain,leg pain; leg ache,पैर में दर्द; टांग में दर्द,pair mein dard; leg pain,पाय दुखणे,paay dukhane; leg pain,pair mein dard hai
+arm_pain,arm pain,हाथ में दर्द; बाजू में दर्द,haath mein dard; arm pain,हात दुखणे,haat dukhane; arm pain,haath mein dard hai
+chest_burning,chest burning; acidity burning,सीने में जलन,seene mein jalan,छातीत जळजळ,chhatit jaljal; acidity,seene mein jalan hai
+acidity,acidity; acid reflux,एसिडिटी; खट्टी डकार,acidity; khatti dakar,आंबट ढेकर; अॅसिडिटी,ambat dhekar; acidity,acidity ho rahi hai
+stomach_burning,stomach burning; burning abdomen,पेट में जलन,pet mein jalan,पोटात जळजळ,potat jaljal,pet mein jalan hai
+loss_of_appetite,loss of appetite; no hunger,भूख न लगना,bhookh na lagna; appetite loss,भूक न लागणे,bhook na lagne,bhookh nahi lag rahi
+weight_loss,weight loss; losing weight,वजन घटना,vajan ghatna; weight loss,वजन कमी होणे,vajan kami; weight loss,vajan kam ho raha hai
+weight_gain,weight gain,वजन बढ़ना,vajan badhna,वजन वाढणे,vajan vadhne,vajan badh raha hai
+fatigue,fatigue; tiredness; weakness,थकान; कमजोरी,thakaan; kamzori; fatigue,थकवा; अशक्तपणा,thakwa; fatigue,bahut thakaan hai
+weakness,weakness; general weakness,कमजोरी,kamzori; weakness,अशक्तपणा,ashaktapana; weakness,kamzori lag rahi hai
+sleep_problem,sleep problem; insomnia; sleeplessness,नींद न आना,neend na aana; insomnia,झोप न येणे,zhop na yene; insomnia,neend nahi aa rahi
+excess_sleep,excess sleep; oversleeping,ज्यादा नींद,jyada neend,जास्त झोप,jasta zhop,bahut neend aa rahi
+anxiety,anxiety; nervousness; worry,घबराहट; चिंता,ghabrahat; chinta; anxiety,चिंता; अस्वस्थता,chinta; anxiety,ghabrahat ho rahi hai
+depression,depression; low mood; sadness,उदासी; डिप्रेशन,udaasi; depression,उदासीनता,udasinata; depression,udaas mehsoos ho raha
+palpitations,palpitations; fast heartbeat,धड़कन बढ़ना; दिल जोर से धड़कना,dhadkan badhna; palpitations,धडधडणे,dhaddhadne; palpitations,dil zor se dhadak raha
+high_bp,high blood pressure; hypertension,हाई बीपी; उच्च रक्तचाप,high bp; uchch raktchaap,उच्च रक्तदाब,uchcha raktadab; high bp,bp high hai
+low_bp,low blood pressure,लो बीपी; निम्न रक्तचाप,low bp; nimn raktchaap,कमी रक्तदाब,kami raktadab; low bp,bp low hai
+diabetes_sugar,high sugar; diabetes,शुगर; मधुमेह,sugar; madhumeh; diabetes,मधुमेह; साखर,madhumeh; diabetes,sugar badh gaya hai
+low_sugar,low sugar; hypoglycemia,लो शुगर,low sugar,कमी साखर,kami sakhar,sugar low ho gaya
+thyroid,thyroid problem,थायराइड,thyroid,थायरॉईड,thyroid,thyroid ki problem hai
+asthma,asthma; wheezing,दमा; अस्थमा,dama; asthma,दमा,dama; asthma,dame ki takleef hai
+wheezing,wheezing; whistling breath,सीटी जैसी सांस,seeti jaisi saans; wheezing,श्वासात शिटी,shwasat shiti; wheezing,saans mein seeti hai
+nosebleed,nosebleed; bleeding nose,नाक से खून,naak se khoon; nosebleed,नाकातून रक्त,nakatoon rakt; nosebleed,naak se khoon aa raha
+bleeding_gums,bleeding gums,मसूड़ों से खून,masoodon se khoon,हिरड्यातून रक्त,hiradyatoon rakt,masoodon se khoon aata
+heavy_bleeding,heavy bleeding; severe bleeding,तेज खून बहना; भारी रक्तस्राव,tez khoon behna; heavy bleeding,जास्त रक्तस्राव,jasta raktasrav,bahut khoon beh raha hai
+blood_in_vomit,blood in vomit,उल्टी में खून,ulti mein khoon,उलटीत रक्त,ultit rakt,ulti mein khoon aaya
+blood_in_stool,blood in stool; bloody stools,पखाने में खून,pakhane mein khoon,शौचात रक्त,shauchat rakt,potty mein khoon hai
+blood_in_urine,blood in urine,पेशाब में खून,peshaab mein khoon,लघवीत रक्त,laghvit rakt,peshaab mein khoon hai
+painful_urination,painful urination; burning urine,पेशाब में जलन,peshaab mein jalan,लघवीला जळजळ,laghvila jaljal,peshaab mein jalan hai
+frequent_urination,frequent urination,बार-बार पेशाब,baar baar peshaab,वारंवार लघवी,varanvar laghvi,baar baar peshaab aata
+low_urine,low urine output; less urination,कम पेशाब,kam peshaab,कमी लघवी,kami laghvi,peshaab kam aa raha
+swelling_feet,swollen feet; foot swelling,पैरों में सूजन,pairon mein soojan,पायांना सूज,payanna sooj; swelling,pairon mein soojan hai
+swelling_face,facial swelling; swollen face,चेहरे पर सूजन,chehre par soojan,चेहऱ्यावर सूज,chehryavar sooj,chehre par soojan hai
+swelling_hands,swollen hands,हाथों में सूजन,haathon mein soojan,हातांना सूज,hatanna sooj,haathon mein soojan hai
+rash,rash; skin rash,चकत्ते; दाने,chakatte; daane; rash,पुरळ; अंगावर उठणे,pural; rash,shareer par daane hain
+itching,itching; itch,खुजली,khujli; itching,खाज सुटणे,khaaj; itching,khujli ho rahi hai
+skin_redness,skin redness,त्वचा लाल होना,twacha laal; redness,त्वचा लाल होणे,twacha laal; redness,twacha laal ho gayi
+dry_skin,dry skin,सूखी त्वचा,sookhi twacha,कोरडी त्वचा,koradi twacha,twacha sookhi hai
+hair_fall,hair fall; hair loss,बाल झड़ना,baal jhadna,केस गळणे,kes galne,baal jhad rahe hain
+mouth_ulcer,mouth ulcer; mouth sore,मुंह में छाला,munh mein chhaala,तोंडात फोड,tondat phod,munh mein chhaala hai
+toothache,toothache; tooth pain,दांत दर्द,daant dard,दातदुखी,daatdukhi,daant mein dard hai
+ear_pain,ear pain; earache,कान में दर्द,kaan mein dard,कानदुखी,kaandukhi,kaan mein dard hai
+ear_discharge,ear discharge,कान से पानी,kaan se paani,कानातून पाणी,kaanatoon paani,kaan se paani aa raha
+hearing_loss,hearing loss; less hearing,कम सुनाई देना,kam sunai dena,कमी ऐकू येणे,kami aikoo; hearing loss,kam sunai de raha hai
+eye_pain,eye pain,आंख में दर्द,aankh mein dard,डोळ्यात दुखणे,dolyat dukhane,aankh mein dard hai
+eye_redness,eye redness; red eyes,आंख लाल होना,aankh laal; red eyes,डोळे लाल होणे,dole laal; red eyes,aankh laal ho gayi
+eye_discharge,eye discharge; watery eyes,आंख से पानी,aankh se paani,डोळ्यातून पाणी,dolyatoon paani,aankh se paani aa raha
+blurred_vision,blurred vision,धुंधला दिखना,dhundla dikhna,अंधुक दिसणे,andhuk disne,dhundla dikh raha hai
+double_vision,double vision,दोहरा दिखना,dohra dikhna,दुहेरी दिसणे,duheri disne,do do dikh rahe hain
+loss_of_vision,vision loss; cannot see,दिखाई न देना,dikhai na dena,दिसत नाही,disat nahi,dikhai nahi de raha
+confusion,confusion; disoriented,भ्रम; समझ न आना,bhram; confusion,गोंधळ; भ्रम,gondhal; confusion,confusion ho raha hai
+unresponsive,unresponsive; unconscious,बेहोश; जवाब न देना,behosh; unresponsive,बेशुद्ध,beshuddha; unconscious,behosh ho gaya hai
+seizure,seizure; fits; convulsions,दौरा; मिर्गी,daura; mirgi; seizure,झटका; फेफरे,zhatka; seizure,daura pad gaya
+fainting,fainting; syncope,बेहोशी; चक्कर खाकर गिरना,behoshi; fainting,चक्कर येऊन पडणे,chakkar yeun padne,chakkar kha kar gir gaya
+facial_droop,facial droop; face drooping,चेहरा टेढ़ा होना,chehra tedha; facial droop,चेहरा वाकडा होणे,chehra vakada; facial droop,chehra tedha lag raha
+slurred_speech,slurred speech,लड़खड़ाती जुबान; तोतलाना,ladkhadaati jubaan; slurred speech,बोलताना अडखळणे,boltana adkhalne,zubaan ladkhada rahi hai
+one_sided_weakness,one-sided weakness; one side numb,एक तरफ कमजोरी,ek taraf kamzori,एक बाजूला अशक्तपणा,ek bajula ashaktapana,ek taraf kamzori hai
+numbness,numbness; tingling,सुन्नपन; झुनझुनी,sunnapan; jhunjhuni,मुंग्या येणे; बधीरपणा,mungya; numbness,haath sunn ho raha hai
+tremor,tremor; shaking hands,कंपन; हाथ कांपना,kanpan; haath kaanpna,थरथर; हात थरथरणे,tharthar; tremor,haath kaanp rahe hain
+memory_loss,memory loss; forgetfulness,याददाश्त कमजोर,yaaddaasht kamzor,विस्मरण,vismaran; memory loss,yaad nahi rehta
+speech_difficulty,speech difficulty,बोलने में दिक्कत,bolne mein dikkat,बोलायला त्रास,bolayla tras,bolne mein dikkat hai
+swallowing_difficulty,difficulty swallowing,निगलने में दिक्कत,nigalne mein dikkat,गिळायला त्रास,gilayla tras,nigalne mein dikkat hai
+hoarseness,hoarseness; voice change,आवाज बैठना,aawaaz baithna; hoarseness,आवाज बसणे,aawaj basne,aawaaz baith gayi hai
+hiccups,hiccups,हिचकी,hichki,उचकी,uchki; hiccups,hichki aa rahi hai
+dry_mouth,dry mouth,मुंह सूखना,munh sookhna,तोंड कोरडे पडणे,tond korade; dry mouth,munh sookh raha hai
+excess_thirst,excess thirst,ज्यादा प्यास,jyada pyaas,जास्त तहान,jasta tahan,bahut pyaas lag rahi
+excess_hunger,excess hunger,ज्यादा भूख,jyada bhookh,जास्त भूक,jasta bhook,bahut bhookh lag rahi
+night_sweats,night sweats,रात में पसीना,raat mein paseena,रात्री घाम,ratri gham,raat mein paseena aata
+chills,chills; shivering,ठंड लगना; कंपकंपी,thand lagna; kanpkampi,थंडी वाजणे; हुडहुडी,thandi vajne; chills,thand lag rahi hai
+sweating,sweating; perspiration,पसीना,paseena; sweating,घाम येणे,gham; sweating,bahut paseena aa raha
+feeling_hot,feeling hot; hot flushes,गर्मी लगना,garmi lagna,गरम होणे,garam hone,garmi lag rahi hai
+feeling_cold,feeling cold,ठंड लगना,thand lagna,थंडी वाजणे,thandi vajne,thand lag rahi hai
+burns,burns; burn injury,जलना,jalna; burns,भाजणे,bhajne; burns,haath jal gaya hai
+wound,wound; cut injury,घाव; चोट,ghaav; chot; wound,जखम,jakham; wound,chot lag gayi hai
+cut,cut; bleeding cut,कटना; खून निकलना,katna; cut,कापणे,kaapne; cut,haath kat gaya hai
+fracture_pain,fracture pain; broken bone pain,हड्डी टूटने का दर्द,haddi tootna; fracture,हाड मोडणे,haad modne; fracture,haddi toot gayi lagti
+sprain,sprain; twist injury,मोच,moch; sprain,मुरगळणे,murgalne; sprain,pair mein moch aayi
+muscle_cramps,muscle cramps,मांसपेशियों में ऐंठन,maanspeshiyon mein ainthan,स्नायूत गोळा,snayut gola; cramps,pair mein ainthan hai
+stiffness,stiffness; body stiffness,अकड़न,akadan; stiffness,ताठरपणा,tatharpana; stiffness,shareer akad gaya hai
+swelling_joint,joint swelling,जोड़ में सूजन,jod mein soojan,सांध्याला सूज,sandhyala sooj,ghutne mein soojan hai
+red_urine,red urine,लाल पेशाब,laal peshaab,लाल लघवी,laal laghvi,peshaab laal aa raha
+white_discharge,white discharge,सफेद पानी,safed paani,पांढरे पाणी,pandhare paani,safed paani aa raha
+vaginal_bleeding,vaginal bleeding,योनि से खून,yoni se khoon,योनीतून रक्त,yonitoon rakt,bleeding ho rahi hai
+missed_period,missed period,मासिक न आना,maasik na aana,पाळी न येणे,paali na yene,period miss ho gaya
+heavy_periods,heavy periods,ज्यादा माहवारी,jyada maahwari,जास्त पाळी,jasta paali,bleeding jyada ho rahi
+period_pain,period pain; menstrual cramps,माहवारी में दर्द,maahwari mein dard,पाळीत पोटदुखी,paalit potdukhi,periods mein dard hai
+pregnancy_pain,pregnancy pain,गर्भावस्था में दर्द,garbhaavastha mein dard,गरोदरपणात दुखणे,garodarpanat dukhane,pregnancy mein dard hai
+labour_pain,labour pain,प्रसव पीड़ा,prasav peeda,कळा येणे,kala yene,dard shuru ho gaya hai
+breast_pain,breast pain,स्तन में दर्द,stan mein dard,स्तनात दुखणे,stanat dukhane,breast mein dard hai
+breast_lump,breast lump,स्तन में गांठ,stan mein gaanth,स्तनात गाठ,stanat gaath,gaan th lag rahi hai
+scrotal_pain,scrotal pain; testicle pain,अंडकोष में दर्द,andkosh mein dard,अंडकोषात दुखणे,andakoshat dukhane,neeche dard hai
+penile_discharge,penile discharge,लिंग से स्राव,ling se sraav,लिंगातून स्राव,lingatoon sraav,discharge ho raha hai
+erectile_issue,erection problem,स्तंभन दोष,stambhan dosh,ताठरता समस्या,tatharata samasya,problem ho rahi hai
+infertility,infertility,बांझपन,baanjhpan,वंध्यत्व,vandhyatva,baccha nahi ho raha
+allergy,allergy,एलर्जी,allergy,अॅलर्जी,allergy,allergy ho gayi hai
+food_allergy,food allergy,खाने से एलर्जी,khaane se allergy,अन्नाची अॅलर्जी,annachi allergy,khaane se allergy hai
+drug_reaction,drug reaction; medicine allergy,दवा से रिएक्शन,dava se reaction,औषधाची प्रतिक्रिया,aushadhachi pratikriya,dava se reaction hua
+insect_bite,insect bite,कीड़े का काटना,keede ka kaatna,किडा चावणे,kida chavne,keede ne kaata hai
+dog_bite,dog bite,कुत्ते का काटना,kutte ka kaatna,कुत्रा चावणे,kutra chavne,kutte ne kaata hai
+snake_bite,snake bite,सांप का काटना,saanp ka kaatna,साप चावणे,saap chavne,saanp ne kaata hai
+fever_with_rash,fever with rash,बुखार के साथ दाने,bukhar ke saath daane,तापासह पुरळ,tapasah pural,bukhar ke saath daane hain
+cough_with_blood,cough with blood,खांसी में खून,khansi mein khoon,खोकल्यात रक्त,khoklyat rakt,khansi mein khoon aaya
+vomit_with_blood,vomit with blood,खून की उल्टी,khoon ki ulti,रक्ताची उलटी,raktachi ulti,khoon ki ulti hui
+shortness_night,breathlessness at night,रात में सांस फूलना,raat mein saans phoolna,रात्री धाप लागणे,ratri dhaap,raat mein saans phoolti
+snoring,snoring,खर्राटे,kharraate; snoring,घोरणे,ghorne; snoring,kharraate aate hain
+sleep_apnoea,sleep apnoea; breathing stops in sleep,नींद में सांस रुकना,neend mein saans rukna,झोपेत श्वास थांबणे,zhopet shwas thambne,neend mein saans rukti
+daytime_sleepiness,daytime sleepiness,दिन में नींद,din mein neend,दिवसा झोप येणे,divasa zhop,din mein neend aati
+restlessness,restlessness,बेचैनी,bechaini,अस्वस्थता,aswasthata,bechaini ho rahi hai
+irritability,irritability,चिड़चिड़ापन,chidchidapan,चिडचिड,chidchid,chidchid ho rahi hai
+aggression,aggression; violent behaviour,आक्रामकता,aakramakta,आक्रमकता,aakramakta,gussa bahut aa raha
+hallucination,hallucination,मतिभ्रम,matibhram,भास होणे,bhas; hallucination,ajeeb dikhai de raha
+suicidal_thoughts,suicidal thoughts,आत्महत्या के विचार,aatmahatya ke vichaar,आत्महत्येचे विचार,aatmahatye che vichar,marne ka mann kar raha
+alcohol_craving,alcohol craving,शराब की तलब,sharaab ki talab,दारूची तल्लफ,daruchi tallaf,sharaab peene ka mann
+smoking_cough,smoker cough,धूम्रपान से खांसी,dhumrapaan se khansi,धूम्रपानामुळे खोकला,dhumrapanamule khokla,smoking se khansi hai
+chest_pain_exercise,chest pain on exertion,चलने पर सीने में दर्द,chalne par seene mein dard,चालल्यावर छातीत दुखणे,chalalyavar chhatit dukhane,chalne par dard hota
+leg_swelling_exercise,leg swelling,पैरों में सूजन,pairon mein soojan,पायांना सूज,payanna sooj,pair sooj jaate hain
+cold_hands_feet,cold hands and feet,हाथ पैर ठंडे,haath pair thande,हात पाय थंड,haat paay thand,haath pair thande hain
+tingling_feet,tingling feet,पैरों में झुनझुनी,pairon mein jhunjhuni,पायांना मुंग्या,payanna mungya,pairon mein jhunjhuni hai
+burning_feet,burning feet,पैरों में जलन,pairon mein jalan,पायांची आग होणे,payanchi aag,pairon mein jalan hai
+knee_swelling,knee swelling,घुटने में सूजन,ghutne mein soojan,गुडघ्याला सूज,gudghyala sooj,ghutne mein soojan hai
+elbow_pain,elbow pain,कोहनी में दर्द,kohni mein dard,कोपरदुखी,kopardukhi,kohni mein dard hai
+wrist_pain,wrist pain,कलाई में दर्द,kalaai mein dard,मनगटदुखी,mangatdukhi,kalaai mein dard hai
+finger_numbness,finger numbness,उंगलियों में सुन्नपन,ungliyon mein sunnapan,बोटांना मुंग्या,botanna mungya,ungli sunn ho rahi
+toe_pain,toe pain,पैर की उंगली में दर्द,pair ki ungli mein dard,पायाच्या बोटात दुखणे,payachya botat dukhane,pair ki ungli mein dard
+heel_pain,heel pain,एड़ी में दर्द,edee mein dard,टाचदुखी,taachdukhi,edee mein dard hai
+hip_pain,hip pain,कूल्हे में दर्द,koolhe mein dard,कंबरेखाली दुखणे,kambarekhaali dukhane,koolhe mein dard hai
+throat_tightness,throat tightness,गला जकड़ना,gala jakadna,घसा घट्ट होणे,ghasa ghatt,gala jakad raha hai
+difficulty_speaking,difficulty speaking,बोलने में तकलीफ,bolne mein takleef,बोलायला त्रास,bolayla tras,bola nahi jaa raha

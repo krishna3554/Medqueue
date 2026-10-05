@@ -24,6 +24,9 @@ from app.auth import verify_password
 from app.database import Base, engine, get_session
 from app.explain.shap_service import explain
 from app.models import AuditEvent, Doctor, Patient, User, Visit, Vital
+from app.nlp.language import detect_language
+from app.nlp.lexicon import match_text
+from app.nlp.negation import annotate
 from app.queue.priority import priority
 from app.queue.wait import RollingMean, estimate_wait_min
 from app.triage import model as triage_model
@@ -79,6 +82,11 @@ class VitalsCreate(BaseModel):
 
 class SymptomsCreate(BaseModel):
     symptoms: list[str] = Field(default_factory=list)
+
+
+class SymptomsExtract(BaseModel):
+    text: str = Field(min_length=1, max_length=2_000)
+    language: str | None = None
 
 
 class OverrideCreate(BaseModel):
@@ -383,6 +391,25 @@ def record_symptoms(
     audit(session, visit.id, user["username"], "symptoms_recorded", {"symptoms": visit.symptoms})
     session.commit()
     return visit_payload(session, visit, patient, datetime.now(UTC))
+
+
+@app.post("/visits/{visit_id}/symptoms/extract")
+def extract_symptoms(
+    visit_id: int,
+    payload: SymptomsExtract,
+    session: Annotated[Session, Depends(get_session)],
+    _: Annotated[dict[str, str], Depends(current_user)],
+) -> dict[str, Any]:
+    """Return candidate canonical symptoms without saving anything.
+
+    Draft lexicon lookup (exact then fuzzy) with negation and duration
+    handling. The caller must confirm via POST /visits/{visit_id}/symptoms.
+    """
+    if not session.get(Visit, visit_id):
+        raise HTTPException(status_code=404, detail="Visit not found")
+    language = payload.language or detect_language(payload.text)
+    candidates = annotate(payload.text, match_text(payload.text))
+    return {"detected_language": language, "candidates": candidates}
 
 
 @app.get("/queue")
