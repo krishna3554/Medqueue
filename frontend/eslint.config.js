@@ -10,7 +10,7 @@ export default [
       ecmaVersion: 'latest',
       sourceType: 'module',
       parserOptions: { ecmaFeatures: { jsx: true } },
-      globals: { document: 'readonly', window: 'readonly', setTimeout: 'readonly', sessionStorage: 'readonly', fetch: 'readonly' },
+      globals: { document: 'readonly', window: 'readonly', setTimeout: 'readonly', sessionStorage: 'readonly', fetch: 'readonly', WebSocket: 'readonly' },
     },
     plugins: { 'react-hooks': reactHooks },
     rules: { ...reactHooks.configs.recommended.rules },

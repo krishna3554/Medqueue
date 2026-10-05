@@ -34,3 +34,5 @@ export const getDoctors = () => request('/doctors');
 export const setDoctorStatus = (id, status) => request(`/doctors/${id}/status`, { method: 'PATCH', body: JSON.stringify({ status }) });
 export const assignDoctor = (visitId, doctorId) => request(`/visits/${visitId}/doctor`, { method: 'PATCH', body: JSON.stringify({ doctor_id: doctorId }) });
 export const getAudit = (visitId) => request(`/visits/${visitId}/audit`);
+export const extractSymptoms = (visitId, text, language) => request(`/visits/${visitId}/symptoms/extract`, { method: 'POST', body: JSON.stringify({ text, language }) });
+export const saveSymptoms = (visitId, symptoms) => request(`/visits/${visitId}/symptoms`, { method: 'POST', body: JSON.stringify({ symptoms }) });

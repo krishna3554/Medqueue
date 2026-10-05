@@ -4,6 +4,7 @@ This service is deliberately rules-first and records human overrides as audit ev
 It is decision support only and must not be used for clinical diagnosis.
 """
 
+import asyncio
 import os
 from contextlib import asynccontextmanager
 from dataclasses import dataclass
@@ -13,7 +14,8 @@ from typing import Annotated, Any, Literal
 from zoneinfo import ZoneInfo
 
 import jwt
-from fastapi import Depends, FastAPI, HTTPException, status
+from fastapi import Depends, FastAPI, HTTPException, WebSocket, WebSocketDisconnect, status
+from fastapi.encoders import jsonable_encoder
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from pydantic import BaseModel, Field
@@ -21,9 +23,12 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.auth import verify_password
-from app.database import Base, engine, get_session
+from app.database import Base, SessionLocal, engine, get_session
 from app.explain.shap_service import explain
 from app.models import AuditEvent, Doctor, Patient, User, Visit, Vital
+from app.nlp.language import detect_language
+from app.nlp.lexicon import match_text
+from app.nlp.negation import annotate
 from app.queue.priority import priority
 from app.queue.wait import RollingMean, estimate_wait_min
 from app.triage import model as triage_model
@@ -79,6 +84,11 @@ class VitalsCreate(BaseModel):
 
 class SymptomsCreate(BaseModel):
     symptoms: list[str] = Field(default_factory=list)
+
+
+class SymptomsExtract(BaseModel):
+    text: str = Field(min_length=1, max_length=2_000)
+    language: str | None = None
 
 
 class OverrideCreate(BaseModel):
@@ -385,11 +395,27 @@ def record_symptoms(
     return visit_payload(session, visit, patient, datetime.now(UTC))
 
 
-@app.get("/queue")
-def queue(
+@app.post("/visits/{visit_id}/symptoms/extract")
+def extract_symptoms(
+    visit_id: int,
+    payload: SymptomsExtract,
     session: Annotated[Session, Depends(get_session)],
     _: Annotated[dict[str, str], Depends(current_user)],
-) -> list[dict[str, Any]]:
+) -> dict[str, Any]:
+    """Return candidate canonical symptoms without saving anything.
+
+    Draft lexicon lookup (exact then fuzzy) with negation and duration
+    handling. The caller must confirm via POST /visits/{visit_id}/symptoms.
+    """
+    if not session.get(Visit, visit_id):
+        raise HTTPException(status_code=404, detail="Visit not found")
+    language = payload.language or detect_language(payload.text)
+    candidates = annotate(payload.text, match_text(payload.text))
+    return {"detected_language": language, "candidates": candidates}
+
+
+def build_queue(session: Session) -> list[dict[str, Any]]:
+    """Ranked waiting queue with per-visit est_wait_min (shared by REST and WS)."""
     now = datetime.now(UTC)
     rows = session.execute(
         select(Visit, Patient).join(Patient).where(Visit.status == "waiting")
@@ -417,6 +443,43 @@ def queue(
             total = estimate_wait_min(ahead, avg_map, dept_default)
             item["est_wait_min"] = round(total / divisor, 1)
     return ranked
+
+
+@app.get("/queue")
+def queue(
+    session: Annotated[Session, Depends(get_session)],
+    _: Annotated[dict[str, str], Depends(current_user)],
+) -> list[dict[str, Any]]:
+    return build_queue(session)
+
+
+@app.websocket("/ws/queue")
+async def ws_queue(websocket: WebSocket) -> None:
+    """JWT-checked live queue; pushes snapshots plus red-flag alerts every 5s."""
+    await websocket.accept()
+    token = websocket.query_params.get("token") or ""
+    try:
+        payload = jwt.decode(token, JWT_SECRET, algorithms=[ALGORITHM])
+        _username, _role = payload["sub"], payload["role"]
+    except Exception:
+        await websocket.close(code=4401)
+        return
+    seen_red: set[int] = set()
+    try:
+        while True:
+            with SessionLocal() as session:
+                snapshot = jsonable_encoder(build_queue(session))
+            current_red = {item["id"] for item in snapshot if item["triage"]["red_flag"]}
+            await websocket.send_json({"type": "queue", "data": snapshot})
+            new_red = sorted(current_red - seen_red)
+            if new_red:
+                await websocket.send_json(
+                    {"type": "red_flag_alert", "ids": new_red, "count": len(current_red)}
+                )
+            seen_red = current_red
+            await asyncio.sleep(5.0)
+    except (WebSocketDisconnect, RuntimeError, asyncio.CancelledError):
+        return
 
 
 @app.post("/visits/{visit_id}/override")
