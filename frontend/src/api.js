@@ -10,13 +10,27 @@ async function request(path, options = {}) {
   return response.status === 204 ? null : response.json();
 }
 
-export async function login() {
-  const result = await request('/auth/login', { method: 'POST', body: JSON.stringify({ username: 'triage', password: 'medqueue-demo' }) });
+export async function login(username, password) {
+  const result = await request('/auth/login', { method: 'POST', body: JSON.stringify({ username, password }) });
   sessionStorage.setItem('medqueue_token', result.access_token);
+  sessionStorage.setItem('medqueue_role', result.role || '');
+  sessionStorage.setItem('medqueue_user', result.username || username);
+  return result;
 }
+export function logout() {
+  sessionStorage.removeItem('medqueue_token');
+  sessionStorage.removeItem('medqueue_role');
+  sessionStorage.removeItem('medqueue_user');
+}
+export const getRole = () => sessionStorage.getItem('medqueue_role') || '';
+export const getUser = () => sessionStorage.getItem('medqueue_user') || '';
 export const getQueue = () => request('/queue');
 export const createPatient = (payload) => request('/patients', { method: 'POST', body: JSON.stringify(payload) });
 export const createVisit = (payload) => request('/visits', { method: 'POST', body: JSON.stringify(payload) });
 export const addVitals = (id, values) => request(`/visits/${id}/vitals`, { method: 'POST', body: JSON.stringify({ values }) });
 export const overrideVisit = (id, payload) => request(`/visits/${id}/override`, { method: 'POST', body: JSON.stringify(payload) });
 export const setStatus = (id, status) => request(`/visits/${id}/status`, { method: 'PATCH', body: JSON.stringify({ status }) });
+export const getDoctors = () => request('/doctors');
+export const setDoctorStatus = (id, status) => request(`/doctors/${id}/status`, { method: 'PATCH', body: JSON.stringify({ status }) });
+export const assignDoctor = (visitId, doctorId) => request(`/visits/${visitId}/doctor`, { method: 'PATCH', body: JSON.stringify({ doctor_id: doctorId }) });
+export const getAudit = (visitId) => request(`/visits/${visitId}/audit`);
