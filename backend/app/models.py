@@ -36,6 +36,8 @@ class Visit(Base):
     red_flag: Mapped[bool] = mapped_column(Boolean, default=False)
     factors: Mapped[list[str]] = mapped_column(JSON, default=list)
     triage_source: Mapped[str] = mapped_column(String(20), default="stub")
+    top_factors: Mapped[list[dict] | None] = mapped_column(JSON, nullable=True, default=None)
+    model_version: Mapped[str | None] = mapped_column(String(40), nullable=True, default=None)
     override_level: Mapped[int | None] = mapped_column(Integer, nullable=True)
     override_reason: Mapped[str | None] = mapped_column(Text, nullable=True)
     override_by: Mapped[str | None] = mapped_column(String(80), nullable=True)

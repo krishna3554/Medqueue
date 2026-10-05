@@ -1,0 +1,83 @@
+{
+  "model_version": "synthetic-v0.1",
+  "selected_model": "xgb",
+  "synthetic_only": true,
+  "seed": 42,
+  "features": [
+    "sym_chest_pain",
+    "sym_chest_tightness",
+    "sym_breathlessness",
+    "sym_fever",
+    "sym_cough",
+    "sym_abdominal_pain",
+    "sym_dizziness",
+    "sym_confusion",
+    "sym_unresponsive",
+    "sym_seizure",
+    "sym_facial_droop",
+    "sym_slurred_speech",
+    "sym_one_sided_weakness",
+    "sym_heavy_bleeding",
+    "age",
+    "age_band",
+    "sex",
+    "spo2",
+    "pulse",
+    "sbp",
+    "dbp",
+    "temp_c",
+    "shock_index",
+    "fever_flag",
+    "hypoxia_flag",
+    "spo2_missing",
+    "pulse_missing",
+    "sbp_missing",
+    "dbp_missing",
+    "temp_c_missing"
+  ],
+  "metrics": {
+    "logreg": {
+      "name": "logreg",
+      "auc_ovr": 0.937,
+      "recall_per_class": {
+        "1": 0.6129032258064516,
+        "2": 0.7242424242424242,
+        "3": 0.71,
+        "4": 0.7404255319148936,
+        "5": 0.9872495446265938
+      },
+      "recall_12": 0.684,
+      "kappa": 0.742,
+      "within_1_accuracy": 0.929
+    },
+    "rf": {
+      "name": "rf",
+      "auc_ovr": 0.966,
+      "recall_per_class": {
+        "1": 0.6881720430107527,
+        "2": 0.9454545454545454,
+        "3": 0.865,
+        "4": 0.851063829787234,
+        "5": 0.9836065573770492
+      },
+      "recall_12": 0.853,
+      "kappa": 0.87,
+      "within_1_accuracy": 0.991
+    },
+    "xgb": {
+      "name": "xgb",
+      "auc_ovr": 0.967,
+      "recall_per_class": {
+        "1": 0.8440860215053764,
+        "2": 0.9424242424242424,
+        "3": 0.845,
+        "4": 0.8553191489361702,
+        "5": 0.9872495446265938
+      },
+      "recall_12": 0.907,
+      "kappa": 0.894,
+      "within_1_accuracy": 0.997
+    }
+  },
+  "selection": "recall on levels 1-2 first, then interpretability"
+}
