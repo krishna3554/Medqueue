@@ -8,6 +8,7 @@ from app.auth import hash_password
 from app.database import Base, get_session
 from app.main import app
 from app.models import AuditEvent, User
+from app.triage import model as triage_model
 
 
 def test_triage_workflow_is_ranked_and_audited(tmp_path) -> None:
@@ -56,9 +57,9 @@ def test_triage_workflow_is_ranked_and_audited(tmp_path) -> None:
             assert visit.status_code == 201
             visit_id = visit.json()["id"]
             # Rules-first: chest_tightness alone matches no red-flag rule,
-            # so the synthetic model decides (source model, AI available).
+            # so the model decides (source model, AI available).
             assert visit.json()["triage"]["source"] == "model"
-            assert visit.json()["triage"]["model_version"] == "synthetic-v0.1"
+            assert visit.json()["triage"]["model_version"] == triage_model.model_version()
             assert visit.json()["triage"]["level"] in {1, 2, 3, 4, 5}
 
             vitals = client.post(
