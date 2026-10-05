@@ -122,7 +122,7 @@ def test_model_visit_stores_version_and_factors(tmp_path) -> None:
         )
         triage = visit.json()["triage"]
         if triage["source"] == "model":
-            assert triage["model_version"] == "synthetic-v0.1"
+            assert triage["model_version"] == triage_model.model_version()
             assert isinstance(triage["top_factors"], list)
             assert len(triage["top_factors"]) == 3
     finally:
