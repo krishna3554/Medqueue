@@ -2,7 +2,7 @@ FROM python:3.12-slim
 
 WORKDIR /app
 COPY backend/pyproject.toml ./
-RUN pip install --no-cache-dir bcrypt==4.3.0 fastapi==0.128.0 joblib==1.4.2 pandas==2.2.3 PyJWT==2.10.1 PyYAML==6.0.3 scikit-learn==1.7.1 shap==0.48.0 SQLAlchemy==2.0.45 "uvicorn[standard]==0.40.0" xgboost==3.0.2
+RUN pip install --no-cache-dir bcrypt==4.3.0 fastapi==0.128.0 joblib==1.4.2 pandas==2.2.3 psycopg2-binary==2.9.10 PyJWT==2.10.1 PyYAML==6.0.3 scikit-learn==1.7.1 shap==0.48.0 SQLAlchemy==2.0.45 "uvicorn[standard]==0.40.0" xgboost==3.0.2
 COPY backend/app ./app
 COPY docs/red_flag_rules.yaml /docs/red_flag_rules.yaml
 # Only metadata.json is committed; model binaries are gitignored. When they are

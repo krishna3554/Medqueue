@@ -12,6 +12,7 @@ dependencies = [
   "fastapi==0.128.0",
   "joblib==1.4.2",
   "pandas==2.2.3",
+  "psycopg2-binary==2.9.10",
   "PyJWT==2.10.1",
   "PyYAML==6.0.3",
   "scikit-learn==1.7.1",
