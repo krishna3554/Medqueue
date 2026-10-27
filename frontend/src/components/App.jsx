@@ -14,6 +14,8 @@ import {
 import { useQueue } from '../useQueue';
 import { beep } from '../queueUtils';
 import { AlertBanner } from './AlertBanner';
+import { AnalyticsView } from './AnalyticsView';
+import { AssistantPanel } from './AssistantPanel';
 import { Intake } from './Intake';
 import { Login } from './Login';
 import { OverrideModal } from './OverrideModal';
@@ -21,6 +23,7 @@ import { PatientPanel } from './PatientPanel';
 import { QueueList } from './QueueList';
 import { SummaryCards } from './SummaryCards';
 import { Toast } from './Toast';
+import { ProfileView } from './ProfileView';
 
 export function App() {
   const [authed, setAuthed] = useState(() => Boolean(sessionStorage.getItem('medqueue_token')));
@@ -40,6 +43,7 @@ export function App() {
   const [audit, setAudit] = useState([]);
   const [auditError, setAuditError] = useState('');
   const [soundOn, setSoundOn] = useState(false);
+  const [assistantOpen, setAssistantOpen] = useState(false);
   const lastAlertRef = useRef(0);
 
   useEffect(() => {
@@ -160,7 +164,7 @@ export function App() {
       <aside className="sidebar">
         <a className="brand" href="#top"><span className="brand-mark">M</span><span>MedQueue<em>AI</em></span></a>
         <p className="site-name">Civic General Hospital<br /><span>OPD · Ground floor</span></p>
-        <nav>{['Queue', 'Intake'].map((item) => <button key={item} className={active === item ? 'nav-link active' : 'nav-link'} onClick={() => setActive(item)}><span>{item === 'Queue' ? '◉' : '＋'}</span>{item}</button>)}</nav>
+        <nav>{['Queue', 'Intake', ...(role === 'admin' ? ['Analytics'] : []), 'Profile'].map((item) => <button key={item} className={active === item ? 'nav-link active' : 'nav-link'} onClick={() => setActive(item)}><span>{item === 'Queue' ? '◉' : item === 'Intake' ? '＋' : item === 'Analytics' ? '▥' : '●'}</span>{item}</button>)}</nav>
         <section className="sidebar-foot"><div className="live-dot" /><div><strong>Live coordination</strong><small>{error ? 'API unavailable' : live ? 'Live via WebSocket' : 'Refreshes every 5 seconds'}</small></div></section>
         <button className="profile" onClick={signOut} title="Sign out">
           <span className="avatar">{(user || role || 'U').slice(0, 2).toUpperCase()}</span>
@@ -170,11 +174,11 @@ export function App() {
       <section className="workspace" id="top">
         <header className="topbar">
           <div><p className="breadcrumb">Today · {new Intl.DateTimeFormat(undefined, { dateStyle: 'full' }).format(new Date())}</p><h1>{active === 'Intake' ? 'Patient intake' : 'Live queue'}</h1></div>
-          <button className="intake-button" onClick={() => setActive('Intake')}>Start intake <span>＋</span></button>
+          {active === 'Queue' && <button className="intake-button" onClick={() => setActive('Intake')}>Start intake <span>＋</span></button>}
         </header>
         <AlertBanner count={redFlags} live={live} soundOn={soundOn} onToggleSound={() => setSoundOn(!soundOn)} latestIds={alert?.ids} />
         {error && <section className="alert" role="alert"><div className="alert-icon">!</div><div><strong>Demo mode — API unavailable</strong><p>Showing hardcoded synthetic patient records. Start the API to use live data.</p></div></section>}
-        {active === 'Intake' ? <Intake complete={async () => { await refresh(); setActive('Queue'); note('Patient added and triaged.'); }} /> : (
+        {active === 'Profile' ? <ProfileView user={user} role={role} /> : active === 'Analytics' ? <AnalyticsView /> : active === 'Intake' ? <Intake complete={async () => { await refresh(); setActive('Queue'); note('Patient added and triaged.'); }} /> : (
           <>
             <SummaryCards queue={queue} avg={avg} error={error} />
             <QueueList visible={visible} selectedId={selected?.id} onSelect={setSelectedId} loading={loading} query={query} setQuery={setQuery} filter={filter} setFilter={setFilter} />
@@ -212,7 +216,9 @@ export function App() {
           onOverride={openOverride}
           onReview={review}
           onAssign={changeAssignment}
+          onAssistant={() => setAssistantOpen(true)}
         />
+        {assistantOpen && <AssistantPanel selected={selected} role={role} onClose={() => setAssistantOpen(false)} />}
       </aside>
       {modal && <OverrideModal level={level} setLevel={setLevel} reason={reason} setReason={setReason} onSubmit={doOverride} onClose={() => setModal(false)} />}
       <Toast toast={toast} />

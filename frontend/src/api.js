@@ -24,6 +24,9 @@ export function logout() {
 }
 export const getRole = () => sessionStorage.getItem('medqueue_role') || '';
 export const getUser = () => sessionStorage.getItem('medqueue_user') || '';
+export const getProfile = () => request('/me');
+export const askAssistant = (question, visitId) => request('/assistant/explain', { method: 'POST', body: JSON.stringify({ question, visit_id: visitId ?? null }) });
+export const getAnalytics = () => request('/analytics/overview');
 export const getQueue = () => request('/queue');
 export const createPatient = (payload) => request('/patients', { method: 'POST', body: JSON.stringify(payload) });
 export const createVisit = (payload) => request('/visits', { method: 'POST', body: JSON.stringify(payload) });

@@ -97,6 +97,9 @@ PYTHONPATH=. python -m simulation.run --seeds 30
 | `PATCH /visits/{id}/status`, `PATCH /visits/{id}/doctor` | triage_nurse, clinician, admin | Status changes record consult start/end for wait estimates |
 | `GET /doctors`, `PATCH /doctors/{id}/status` | any / clinical | Status controls affect wait estimates |
 | `GET /visits/{id}/audit` | admin | Override/escalation trail viewer |
+| `GET /me` | any signed-in | Safe role and department profile context |
+| `POST /assistant/explain` | any signed-in | Read-only queue/triage explanation; patient context requires a clinical role |
+| `GET /analytics/overview` | admin | Operational totals, triage distribution, sources, waits, and override count |
 
 Rules-first: a matching red-flag rule always overrides any model output.
 Override replaces the base level while red-flag and aging still apply.
@@ -114,6 +117,11 @@ Dashboard views (run `docker compose up --build` and open
   fallback, then vitals.
 - **Patient brief** — reason for position (rule name, model top-3 factors,
   or "AI unavailable"), doctor assignment, and an admin-only audit log.
+- **Read-only assistant** — explains queue policy and the selected patient's
+  matched rule/model factors without changing triage or saving symptoms.
+- **Profile** — role-aware signed-in account context with the safety disclosure.
+- **Admin analytics** — live operational snapshot from existing visit and audit
+  records; clearly marked synthetic/demo data.
 
 Quantitative evidence (synthetic only): see
 `docs/results/wait_by_level.png` (mean wait by urgency level per policy),
