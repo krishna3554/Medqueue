@@ -19,7 +19,7 @@ from fastapi.encoders import jsonable_encoder
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from pydantic import BaseModel, Field
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app.auth import verify_password
@@ -32,8 +32,8 @@ from app.nlp.negation import annotate
 from app.queue.priority import priority
 from app.queue.wait import RollingMean, estimate_wait_min
 from app.triage import model as triage_model
-from app.triage.rules import evaluate_rules, load_rules
-from app.triage.stub import stub_triage
+from app.triage.rules import load_rules
+from app.triage.service import triage
 
 
 @asynccontextmanager
@@ -108,6 +108,11 @@ class DoctorAssign(BaseModel):
     doctor_id: int | None
 
 
+class AssistantRequest(BaseModel):
+    question: str = Field(min_length=1, max_length=1_000)
+    visit_id: int | None = None
+
+
 @dataclass
 class AheadEntry:
     doctor_id: str | None
@@ -122,6 +127,15 @@ def current_user(
     except (jwt.PyJWTError, KeyError) as error:
         raise HTTPException(status_code=401, detail="Invalid or expired access token") from error
     return {"username": username, "role": role}
+
+
+def role_department(role: str) -> str:
+    return {
+        "registration": "Registration",
+        "triage_nurse": "Triage",
+        "clinician": "Clinical operations",
+        "admin": "Administration",
+    }.get(role, "Hospital operations")
 
 
 def require_clinician(user: Annotated[dict[str, str], Depends(current_user)]) -> dict[str, str]:
@@ -152,41 +166,24 @@ def latest_vitals(session: Session, visit_id: int) -> dict[str, float]:
 
 
 def triage_visit(session: Session, visit: Visit, patient: Patient) -> None:
-    """Rules-first triage: red-flag rules override any model output.
-
-    Falls back to rules + stub with an "AI unavailable" state when the model
-    is missing or fails. Never raises because of the model.
-    """
+    """Apply the triage service and persist its stable result contract."""
     symptoms = set(visit.symptoms)
     vitals = latest_vitals(session, visit.id)
     years = age_on(patient.date_of_birth)
-    if evaluate_rules(symptoms, vitals, years, RULES):
-        result = stub_triage(symptoms, vitals, years, RULES)
-        visit.triage_level = result["level"]
-        visit.red_flag = result["red_flag"]
-        visit.factors = result["factors"]
-        visit.triage_source = result["source"]
-        visit.top_factors = None
-        visit.model_version = None
-        return
-    predicted = triage_model.predict(symptoms, vitals, years)
-    if predicted is not None:
-        level = int(predicted["level"])
-        details = explain(symptoms, vitals, years, level)
-        visit.triage_level = level
-        visit.red_flag = False
-        visit.factors = [details["rationale"]]
-        visit.triage_source = "model"
-        visit.top_factors = details["top_factors"]
-        visit.model_version = str(predicted["model_version"])
-        return
-    result = stub_triage(symptoms, vitals, years, RULES)
+    result = triage(
+        symptoms,
+        vitals,
+        years,
+        RULES,
+        predictor=triage_model.predict,
+        explainer=explain,
+    )
     visit.triage_level = result["level"]
     visit.red_flag = result["red_flag"]
     visit.factors = result["factors"]
     visit.triage_source = result["source"]
-    visit.top_factors = None
-    visit.model_version = None
+    visit.top_factors = result.get("top_factors")
+    visit.model_version = result.get("model_version")
 
 
 def audit(
@@ -282,6 +279,119 @@ def visit_payload(
 @app.get("/health")
 def health() -> dict[str, str]:
     return {"status": "ok"}
+
+
+@app.get("/me")
+def profile(user: Annotated[dict[str, str], Depends(current_user)]) -> dict[str, Any]:
+    """Return the signed-in user's safe profile context."""
+    return {
+        "username": user["username"],
+        "role": user["role"],
+        "department": role_department(user["role"]),
+        "availability_status": None,
+        "notifications_enabled": True,
+    }
+
+
+@app.post("/assistant/explain")
+def assistant_explain(
+    payload: AssistantRequest,
+    session: Annotated[Session, Depends(get_session)],
+    user: Annotated[dict[str, str], Depends(current_user)],
+) -> dict[str, Any]:
+    """Provide read-only queue and triage explanations; never changes a visit."""
+    question = payload.question.strip().lower()
+    general = (
+        "The queue combines urgency level, red-flag protection, and waiting-time "
+        "aging. A red-flag rule always takes precedence over the model. Human "
+        "judgment remains final; this tool is decision support, not diagnosis."
+    )
+    if payload.visit_id is None:
+        return {
+            "answer": general,
+            "sources": ["queue policy", "rules-first triage"],
+            "ai_available": False,
+        }
+    if user["role"] not in {"triage_nurse", "clinician", "admin"}:
+        raise HTTPException(
+            status_code=403, detail="Clinical role required for patient explanations"
+        )
+    visit = session.get(Visit, payload.visit_id)
+    if not visit:
+        raise HTTPException(status_code=404, detail="Visit not found")
+    patient = session.get(Patient, visit.patient_id)
+    assert patient is not None
+    triage = visit_payload(session, visit, patient, datetime.now(UTC))["triage"]
+    if triage["red_flag"]:
+        answer = (
+            f"This patient is Level 1 because a red-flag rule matched: "
+            f"{'; '.join(triage['factors'])}. Rules are checked before any AI output."
+        )
+        sources = ["matched red-flag rule", "rules-first triage"]
+    elif triage["source"] == "model":
+        factor_text = ", ".join(
+            str(item.get("name", "factor")).replace("_", " ")
+            for item in (triage["top_factors"] or [])
+        )
+        answer = (
+            f"This patient is Level {triage['level']}. The model explanation highlights "
+            f"{factor_text or 'the recorded symptoms and vitals'}. Waiting time also "
+            "contributes to queue position."
+        )
+        sources = ["model explanation", "waiting-time aging"]
+    else:
+        answer = (
+            f"This patient is Level {triage['level']} using the deterministic fallback. "
+            "AI artifacts are unavailable, so the system is using rules and the "
+            "documented stub policy."
+        )
+        sources = ["fallback triage", "waiting-time aging"]
+    if any(word in question for word in ("why", "rank", "position", "urgent", "level")):
+        return {
+            "answer": answer,
+            "sources": sources,
+            "ai_available": triage["ai_available"],
+        }
+    return {
+        "answer": general + "\n\nFor this patient: " + answer,
+        "sources": sources,
+        "ai_available": triage["ai_available"],
+    }
+
+
+@app.get("/analytics/overview")
+def analytics_overview(
+    session: Annotated[Session, Depends(get_session)],
+    _: Annotated[dict[str, str], Depends(require_admin)],
+) -> dict[str, Any]:
+    """Return a compact admin-only operational snapshot from existing records."""
+    visits = session.scalars(select(Visit)).all()
+    now = datetime.now(UTC)
+    waits = [
+        max((now - ensure_utc(item.registered_at)).total_seconds() / 60, 0)
+        for item in visits
+        if item.status == "waiting"
+    ]
+    distribution = {
+        str(level): sum(1 for item in visits if effective_level(item) == level)
+        for level in range(1, 6)
+    }
+    sources = {}
+    for item in visits:
+        sources[item.triage_source] = sources.get(item.triage_source, 0) + 1
+    override_count = session.scalar(
+        select(func.count(AuditEvent.id)).where(AuditEvent.action == "priority_overridden")
+    ) or 0
+    return {
+        "total_visits": len(visits),
+        "waiting_visits": sum(1 for item in visits if item.status == "waiting"),
+        "red_flag_visits": sum(1 for item in visits if item.red_flag),
+        "average_wait_min": round(sum(waits) / len(waits), 1) if waits else 0.0,
+        "triage_distribution": distribution,
+        "source_distribution": sources,
+        "override_count": int(override_count),
+        "synthetic_only": True,
+    }
 
 
 @app.post("/auth/login")

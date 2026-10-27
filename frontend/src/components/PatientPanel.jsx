@@ -2,7 +2,7 @@
 import { age, expectedReview, expectedSub } from '../queueUtils';
 import { AuditLog } from './AuditLog';
 
-export function PatientPanel({ selected, doctors, role, audit, auditError, onOverride, onReview, onAssign }) {
+export function PatientPanel({ selected, doctors, role, audit, auditError, onOverride, onReview, onAssign, onAssistant }) {
   if (!selected) return <p className="empty-state">Select a patient from the queue.</p>;
   return (
     <>
@@ -35,6 +35,7 @@ export function PatientPanel({ selected, doctors, role, audit, auditError, onOve
         <p>Human judgment is final. This is decision support, not a diagnosis.</p>
         <button className="outline-button" onClick={onOverride}>Override priority</button>
         <button className="primary-button" onClick={onReview}>Begin review</button>
+        <button className="assistant-button" onClick={onAssistant}>Ask why</button>
       </section>
     </>
   );
